@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="17"
+   height="24"
+   viewBox="0 0 17 24"
+   id="svg4"
+   sodipodi:docname="bed-level-b-m.svg"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     showgrid="false"
+     inkscape:zoom="26"
+     inkscape:cx="11.153846"
+     inkscape:cy="8.9423077"
+     inkscape:window-width="1600"
+     inkscape:window-height="826"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <defs
+     id="defs8" />
+  <path
+     d="m 6.513031,3.984567 h 3.97394 l 0.01414,7.022684 3.50018,-3.50018 2.418304,2.4183065 L 8.5,17.844972 0.580405,9.9253765 3.005781,7.5 6.50596,11.00018 Z"
+     id="path2-3"
+     style="fill:#e2e2e2"
+     sodipodi:nodetypes="cccccccccc" />
+</svg>

@@ -86,6 +86,9 @@ class BedLevelPanel(ScreenPanel):
         bl = [min(dict(self.screws).keys()), max(dict(self.screws).values())]
         # max_x, min_y
         fr = [max(dict(self.screws).keys()), min(dict(self.screws[::-1]).values())]
+        bm = fm = lm = rm = None
+
+        bedgrid = Gtk.Grid()
 
         self.labels['bl'] = self._gtk.ButtonImage("bed-level-t-l", None, None, 3, 3)
         self.labels['bl'].connect("clicked", self.go_to_position, bl)
@@ -95,31 +98,44 @@ class BedLevelPanel(ScreenPanel):
         self.labels['fl'].connect("clicked", self.go_to_position, fl)
         self.labels['fr'] = self._gtk.ButtonImage("bed-level-b-r", None, None, 3, 3)
         self.labels['fr'].connect("clicked", self.go_to_position, fr)
+        self.labels['bm'] = self._gtk.ButtonImage("bed-level-t-m", None, None, 3, 3)
+        self.labels['fm'] = self._gtk.ButtonImage("bed-level-b-m", None, None, 3, 3)
+        self.labels['lm'] = self._gtk.ButtonImage("bed-level-l-m", None, None, 3, 3)
+        self.labels['rm'] = self._gtk.ButtonImage("bed-level-r-m", None, None, 3, 3)
 
         if self._screen.lang_ltr:
-            grid.attach(self.labels['bl'], 1, 0, 1, 1)
-            grid.attach(self.labels['br'], 2, 0, 1, 1)
-            grid.attach(self.labels['fl'], 1, 1, 1, 1)
-            grid.attach(self.labels['fr'], 2, 1, 1, 1)
+            bedgrid.attach(self.labels['bl'], 1, 0, 1, 1)
+            bedgrid.attach(self.labels['br'], 3, 0, 1, 1)
+            bedgrid.attach(self.labels['fl'], 1, 2, 1, 1)
+            bedgrid.attach(self.labels['fr'], 3, 2, 1, 1)
         else:
-            grid.attach(self.labels['bl'], 2, 0, 1, 1)
-            grid.attach(self.labels['br'], 1, 0, 1, 1)
-            grid.attach(self.labels['fl'], 2, 1, 1, 1)
-            grid.attach(self.labels['fr'], 1, 1, 1, 1)
+            bedgrid.attach(self.labels['bl'], 3, 0, 1, 1)
+            bedgrid.attach(self.labels['br'], 1, 0, 1, 1)
+            bedgrid.attach(self.labels['fl'], 3, 2, 1, 1)
+            bedgrid.attach(self.labels['fr'], 1, 2, 1, 1)
 
-        self.labels['home'] = self._gtk.ButtonImage("home", _("Home All"), "color2")
-        self.labels['home'].connect("clicked", self.home)
+        if len(screws) >= 6:
+            # self.labels['bm'].connect("clicked", self.go_to_position, bm)
+            bedgrid.attach(self.labels['bm'], 2, 0, 1, 1)
+            # self.labels['fm'].connect("clicked", self.go_to_position, fm)
+            bedgrid.attach(self.labels['fm'], 2, 2, 1, 1)
+        if len(screws) == 8:
+            # self.labels['lm'].connect("clicked", self.go_to_position, lm)
+            bedgrid.attach(self.labels['lm'], 1, 1, 1, 1)
+            # self.labels['rm'].connect("clicked", self.go_to_position, rm)
+            bedgrid.attach(self.labels['rm'], 3, 1, 1, 1)
+
+        grid.attach(bedgrid, 1, 0, 3, 2)
 
         self.labels['dm'] = self._gtk.ButtonImage("motor-off", _("Disable XY"), "color3")
         self.labels['dm'].connect("clicked", self.disable_motors)
 
-        grid.attach(self.labels['home'], 0, 0, 1, 1)
-        grid.attach(self.labels['dm'], 0, 1, 1, 1)
+        grid.attach(self.labels['dm'], 0, 0, 1, 1)
 
         if self._printer.config_section_exists("screws_tilt_adjust"):
             self.labels['screws'] = self._gtk.ButtonImage("refresh", _("Screws Adjust"), "color4")
             self.labels['screws'].connect("clicked", self.screws_tilt_calculate)
-            grid.attach(self.labels['screws'], 3, 0, 1, 1)
+            grid.attach(self.labels['screws'], 0, 1, 1, 1)
 
         self.content.add(grid)
 
@@ -132,6 +148,8 @@ class BedLevelPanel(ScreenPanel):
             self.labels['screws'].set_sensitive(True)
 
     def go_to_position(self, widget, position):
+        if self._screen.printer.get_stat("toolhead", "homed_axes") != "xyz":
+            self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
         logging.debug("Going to position: %s", position)
         script = [
             "%s" % KlippyGcodes.MOVE_ABSOLUTE,
