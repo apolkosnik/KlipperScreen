@@ -21,21 +21,26 @@ class TemperaturePanel(ScreenPanel):
     def initialize(self, panel_name):
         self.preheat_options = self._screen._config.get_preheat_options()
         logging.debug("Preheat options: %s" % self.preheat_options)
-        self.show_preheat = True
         self.grid = self._gtk.HomogeneousGrid()
         self.grid.attach(self.create_left_panel(), 0, 0, 1, 1)
+
+        for x in self._printer.get_tools():
+            if x not in self.active_heaters and x in self._printer.get_temp_store_devices():
+                self.select_heater(None, x)
+        # When printing start in temp_delta mode and only select tools
+        logging.info(self._printer.get_state())
+        if self._printer.get_state() not in ["printing", "paused"]:
+            self.show_preheat = True
+            for h in self._printer.get_heaters():
+                if h.startswith("temperature_sensor "):
+                    continue
+                if h not in self.active_heaters:
+                    self.select_heater(None, h)
+        else:
+            self.show_preheat = False
         self.grid.attach(self.create_right_panel(), 1, 0, 1, 1)
         self.content.add(self.grid)
         self.layout.show_all()
-
-        for x in self._printer.get_tools():
-            if x not in self.active_heaters:
-                self.select_heater(None, x)
-        for h in self._printer.get_heaters():
-            if h.startswith("temperature_sensor "):
-                continue
-            if h not in self.active_heaters:
-                self.select_heater(None, h)
 
     def create_right_panel(self):
         _ = self.lang.gettext
@@ -232,7 +237,13 @@ class TemperaturePanel(ScreenPanel):
                 else:
                     self._screen.show_popup_message(_("Can't set above the maximum:") + (" %s" % MAX_TEMP))
             if self.preheat_options[setting]['gcode']:
-                self._screen._ws.klippy.gcode_script(self.preheat_options[setting]['gcode'])
+                # This small delay is needed to properly update the target if the user configured something above
+                # and then changed the target again using the preheat gcode
+                GLib.timeout_add(250, self.preheat_gcode, setting)
+
+    def preheat_gcode(self, setting):
+        self._screen._ws.klippy.gcode_script(self.preheat_options[setting]['gcode'])
+        return False
 
     def add_device(self, device):
         _ = self.lang.gettext
@@ -302,7 +313,8 @@ class TemperaturePanel(ScreenPanel):
             self.labels['da'].add_object(device, "targets", rgb, True, False)
 
         text = "<span underline='double' underline_color='#%s'>%s</span>" % (color, devname.capitalize())
-        name = self._gtk.ButtonImage(image, devname.capitalize(), None, .5, .5, Gtk.PositionType.LEFT, False)
+        name = self._gtk.ButtonImage(image, devname.capitalize().replace("_", " "),
+                                     None, .5, .5, Gtk.PositionType.LEFT, False)
         name.connect('clicked', self.on_popover_clicked, device)
         name.set_alignment(0, .5)
         name.get_style_context().add_class(class_name)
